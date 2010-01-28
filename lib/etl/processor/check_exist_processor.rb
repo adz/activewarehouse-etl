@@ -32,6 +32,7 @@ module ETL #:nodoc:
         @target = configuration[:target] || raise(ETL::ControlError, "target must be specified")
         @table = configuration[:table] || raise(ETL::ControlError, "table must be specified")
         @columns = configuration[:columns]
+        @overwrite = configuration[:overwrite] || false
         
         q = "SELECT COUNT(*) FROM #{table_name}"
         @should_check = ETL::Engine.connection(target).select_value(q).to_i > 0 
@@ -66,9 +67,19 @@ module ETL #:nodoc:
         q << conditions.join(" AND ")
         q << " LIMIT 1"
       
-        #puts "query: #{q}"
+#        puts "query: #{q}"
         result = conn.select_one(q)
-        return row if result.nil?
+        if result.nil?
+          return row
+        else
+          if @overwrite == true
+            del = "DELETE FROM #{table_name} WHERE " + conditions.join(" AND ")
+#            puts "Overwriting record: #{del}"
+            result = conn.delete(del)
+#            puts "Deleted #{result} rows"
+            return row
+          end
+        end
       end
       
       private
