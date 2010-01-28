@@ -88,7 +88,7 @@ module ETL #:nodoc:
       
       # Get the last local file trigger
       def last_local_file_trigger
-        Dir.glob(File.join(local_directory, '*.trig')).last
+        Dir.glob(File.join(local_directory, '*.trig')).sort.last
       end
       
       # Get the local trigger file that is used to indicate that the file has
