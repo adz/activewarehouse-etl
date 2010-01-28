@@ -4,7 +4,12 @@ module ETL #:nodoc:
     class StringToTimeTransform < ETL::Transform::Transform
       # Transform the value using Time.parse
       def transform(name, value, row)
-        Time.parse(value) unless value.nil?
+        begin
+          Time.parse(value) unless value.nil?
+        rescue
+          puts "Invalid time found: #{value}"
+          raise
+        end
       end
     end
   end
