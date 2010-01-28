@@ -25,9 +25,9 @@ module ETL #:nodoc:
         super
         raise ControlError, "Source file must be specified" if configuration[:source_file].nil?
         raise ControlError, "Target file must be specified" if configuration[:target_file].nil?
-        @source_file = File.join(File.dirname(control.file), configuration[:source_file])
+        @source_file = File.join(control.work_dir, configuration[:source_file])
         @source_encoding = configuration[:source_encoding]
-        @target_file = File.join(File.dirname(control.file), configuration[:target_file])
+        @target_file = File.join(control.work_dir, configuration[:target_file])
         @target_encoding = configuration[:target_encoding]
         raise ControlError, "Source and target file cannot currently point to the same file" if source_file == target_file
         begin

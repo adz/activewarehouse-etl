@@ -40,7 +40,7 @@ module ETL #:nodoc:
       # * <tt>:order</tt>: The order array
       def initialize(control, configuration, mapping={})
         super
-        @file = File.join(File.dirname(control.file), configuration[:file])
+        @file = File.join(control.work_dir, configuration[:file])
         @append = configuration[:append] ||= false
         @separator = configuration[:separator] ||= ','
         @eol = configuration[:eol] ||= "\n"

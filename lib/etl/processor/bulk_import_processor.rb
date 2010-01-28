@@ -38,7 +38,7 @@ module ETL #:nodoc:
       # * <tt>:field_enclosure</tt>: The field enclosure charcaters
       def initialize(control, configuration)
         super
-        @file = File.join(File.dirname(control.file), configuration[:file])
+        @file = File.join(control.work_dir, configuration[:file])
         @target = configuration[:target]
         @table = configuration[:table]
         @truncate = configuration[:truncate] ||= false
@@ -55,6 +55,7 @@ module ETL #:nodoc:
       # Execute the processor
       def process
         return if ETL::Engine.skip_bulk_import
+        raise ControlError, "Import file (#{file}) must exist" unless File.exists?(file)
         return if File.size(file) == 0
         
         conn = ETL::Engine.connection(target)

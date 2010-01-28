@@ -1,3 +1,5 @@
+require 'fileutils'
+
 module ETL #:nodoc:
   module Control #:nodoc:
     # The Context is passed to eval. 
@@ -23,6 +25,10 @@ module ETL #:nodoc:
         control.file
       end
       
+      def work_dir
+        control.work_dir
+      end
+
       # Set the allowed error threshold
       def set_error_threshold(error_threshold)
         control.error_threshold = error_threshold
@@ -66,8 +72,8 @@ module ETL #:nodoc:
               sources << source_class.new(self, configuration, definition)
               break
             end
+            raise ControlError, "A source was specified but no matching type was found"
           end
-          raise ControlError, "A source was specified but no matching type was found" if sources.empty?
         end
       end
       
@@ -100,8 +106,8 @@ module ETL #:nodoc:
               destinations << dest_class.new(self, configuration, mapping)
               break
             end
+            raise ControlError, "A destination was specified but no matching destination type was found"
           end
-          raise ControlError, "A destination was specified but no matching destination type was found" if destinations.empty?      
         end
       end
       
@@ -267,6 +273,7 @@ module ETL #:nodoc:
     class Control
       # The File object
       attr_reader :file
+      attr_reader :work_dir
       
       # The error threshold
       attr_accessor :error_threshold
@@ -313,6 +320,11 @@ module ETL #:nodoc:
       # Initialize the instance with the given File object
       def initialize(file)
         @file = file
+        @work_dir = work_dir_name(file)
+        unless Dir.exists?(@work_dir)
+          FileUtils.mkdir_p @work_dir
+        end
+
       end
       
       # Get a list of dependencies
@@ -400,6 +412,18 @@ module ETL #:nodoc:
         [:file, :database]
       end
       
+      def work_dir_name(file)
+        now = Time.now
+        File.join(
+          File.dirname(file),
+          'work_files',
+          (ENV['RAILS_ENV'] || 'development'),
+          now.strftime('%Y%m%d'),
+          now.strftime('%H'),
+          now.strftime('%M'),
+          now.strftime('%S')
+        )
+      end
     end
   end
 end
