@@ -42,7 +42,7 @@ module ETL #:nodoc:
       def record_from_date(date)
         time = date.to_time # need methods only available in Time
         record = {}
-        record[:date] = time.strftime("%m/%d/%Y")
+        record[:sql_date] = time.strftime("%Y-%m-%d")
         record[:full_date_description] = time.strftime("%B %d,%Y")
         record[:day_of_week] = time.strftime("%A")
         record[:day_in_week] = record[:day_of_week] # alias
