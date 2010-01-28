@@ -364,6 +364,8 @@ module ETL #:nodoc:
       # Check whether non-scd fields have changed since the last
       # load of this record.
       def has_scd_field_changes?(row)
+        ETL::Engine.logger.debug "New row: #{row.inspect}"
+        ETL::Engine.logger.debug "Cur row: #{@existing_row.inspect}"
         scd_fields(row).any? { |csd_field| row[csd_field].to_s != @existing_row[csd_field].to_s }
       end
       
@@ -397,7 +399,7 @@ module ETL #:nodoc:
         if scd_type == 2
           row[scd_effective_date_field] = @timestamp
           row[scd_end_date_field] = '9999-12-31 00:00:00'
-          row[scd_latest_version_field] = true
+          row[scd_latest_version_field] = 1
         end
         buffer << row
       end
