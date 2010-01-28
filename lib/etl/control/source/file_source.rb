@@ -59,7 +59,7 @@ module ETL #:nodoc:
         sequence = 0
         path = Pathname.new(file)
         path = path.absolute? ? path : Pathname.new(File.dirname(control.file)) + path
-        Pathname.glob(path).each do |f|
+        Pathname.glob(path.to_s).each do |f|
           next if f.directory?
           lf = local_file(sequence)
           FileUtils.cp(f, lf)

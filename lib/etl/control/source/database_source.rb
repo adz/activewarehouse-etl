@@ -128,7 +128,7 @@ module ETL #:nodoc:
         raise "Local cache trigger file not found" unless File.exists?(local_file_trigger(file))
         
         t = Benchmark.realtime do
-          FasterCSV.open(file, :headers => true).each do |row|
+          CSV.open(file, :headers => true).each do |row|
             result_row = ETL::Row.new
             result_row.source = self
             row.each do |header, field|
@@ -150,7 +150,7 @@ module ETL #:nodoc:
       def write_local(file)
         lines = 0
         t = Benchmark.realtime do
-          FasterCSV.open(file, 'w') do |f|
+          CSV.open(file, 'w') do |f|
             f << columns
             query_rows.each do |row|
               f << columns.collect { |column| row[column.to_s] }
@@ -171,10 +171,10 @@ module ETL #:nodoc:
         conditions = []
         if new_records_only
           last_completed = ETL::Execution::Job.maximum('created_at', 
-            :conditions => ['control_file = ? and completed_at is not null', control.file]
+            :conditions => ['control_file = ? and completed_at is not null', File.basename(control.file)]
           )
           if last_completed
-            conditions << "#{new_records_only} > #{connection.quote(last_completed.to_s(:db))}"
+            conditions << "#{new_records_only} >= #{connection.quote(last_completed.to_s(:db))}"
           end
         end
         

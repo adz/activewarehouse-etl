@@ -29,6 +29,17 @@ require 'logger'
 require 'yaml'
 require 'erb'
 
+# we don't want to parse all of the args just yet, but we want to
+# initialize the Rails environment if the --rails-root option was
+# supplied - this will let us use the Rails version in vendor/rails
+# if it's there
+ARGV.each_with_index do |arg, i|
+  if arg == '--rails-root' && (i + 1) < ARGV.length
+    require File.join(ARGV[i + 1], 'config/environment')
+    break
+  end
+end
+
 require 'rubygems'
 
 unless defined?(REXML::VERSION)
@@ -39,7 +50,8 @@ end
 require 'active_support'
 require 'active_record'
 require 'adapter_extensions'
-require 'faster_csv'
+require 'csv'
+require 'pidify'
 
 $:.unshift(File.dirname(__FILE__))
 
@@ -57,6 +69,7 @@ require 'etl/transform'
 require 'etl/processor'
 require 'etl/generator'
 require 'etl/screen'
+require 'forkify'
 
 module ETL #:nodoc:
   class ETLError < StandardError #:nodoc:
