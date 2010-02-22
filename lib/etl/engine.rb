@@ -25,9 +25,10 @@ module ETL #:nodoc:
           @log_write_mode = 'w' if options[:newlog]
           @skip_bulk_import = options[:skip_bulk_import]
           @read_locally = options[:read_locally]
-          @rails_root = options[:rails_root]
-          
-          require File.join(@rails_root, 'config/environment') if @rails_root
+          @rails_root = ( options[:rails_root] || '.' )
+
+          env_file = File.join(@rails_root, 'config/environment')
+          require env_file if File.exists? env_file
           options[:config] ||= 'database.yml'
           options[:config] = 'config/database.yml' unless File.exist?(options[:config])
 
@@ -35,7 +36,7 @@ module ETL #:nodoc:
 
           if RAILS_ENV
             env_db_file = File.join(@rails_root, 'config', "database.#{RAILS_ENV}.yml")
-            if File.exist?(env_db_file)
+            if File.exists?(env_db_file)
               options[:env_config] = env_db_file
             end
           end
@@ -332,8 +333,9 @@ module ETL #:nodoc:
         # To do so, will need to return a dataset from inside the block and set the benchmarks and rows_read from the return.
         # Only forkify if the number of rows to read is > 500 (to offset startup time for forkify/rinda::tuplespace
 
-        method = source.length > 500 ? :forkify : :each_with_index
-        source.send(method) do |row, index|
+#        method = source.length > 500 ? :forkify : :each_with_index
+#        source.send(method) do |row, index|
+        source.each_with_index do |row, index|
           # Break out of the row loop if the +Engine.limit+ is specified and 
           # the number of rows read exceeds that value.
           if Engine.limit != nil && Engine.rows_read >= Engine.limit

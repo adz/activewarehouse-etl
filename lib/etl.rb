@@ -51,7 +51,7 @@ require 'active_support'
 require 'active_record'
 require 'adapter_extensions'
 require 'csv'
-require 'pidify'
+#require 'pidify'
 
 $:.unshift(File.dirname(__FILE__))
 
@@ -69,7 +69,7 @@ require 'etl/transform'
 require 'etl/processor'
 require 'etl/generator'
 require 'etl/screen'
-require 'forkify'
+#require 'forkify'
 
 module ETL #:nodoc:
   class ETLError < StandardError #:nodoc:
