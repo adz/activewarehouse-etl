@@ -12,7 +12,7 @@ module ETL #:nodoc:
       
       # Return each row
       def each
-        Dir.glob(file).each do |file|
+        Dir.glob(file.to_s).each do |file|
           open(file).each do |line|
             row = {}
             lines_skipped = 0
