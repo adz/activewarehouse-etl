@@ -2,7 +2,7 @@ module ETL
   module Processor
 
     # A row level processor to fill more values in the row from a source
-    class FillRowFromTableProcessor < ETL::Processor::RowProcessor
+    class FillRowProcessor < ETL::Processor::RowProcessor
       # The values hash which maps retrieved column names to row values to populate
       attr_accessor :values
 
@@ -17,13 +17,6 @@ module ETL
 
       # The database connection
       attr_accessor :connection
-
-      # Whether or not to overwrite existing values in the row (uses blank? rules if false)
-      attr_accessor :overwrite?
-
-      # Whether or not to use the first returned row if there are multiple values returned.
-      # If not true, then any multiple row return will result in an error
-      attr_accessor :use_first?
 
       # Initialize the row processor
       #
@@ -42,40 +35,63 @@ module ETL
       # FALSE and multiple rows are found
       #
       def initialize(control, configuration)
-        @values = configuration[:values]
-        @match  = configuration[:match]
-        @target = configuration[:target]
-        @table  = configuration[:table]
+        super
+
+        @values = configuration[:values] || raise(ETL::ControlError, ":values must be specified")
+        @match  = configuration[:match] || raise(ETL::ControlError, ":match must be specified")
+        @target = configuration[:target] || raise(ETL::ControlError, ":target must be specified")
+        @table  = configuration[:table] || raise(ETL::ControlError, ":table must be specified")
         @use_first = ( configuration[:use_first] || false )
         @overwrite = ( configuration[:overwrite] || true )
 
         @connection = ETL::Engine.connection(target)
       end
 
+      # Whether or not to overwrite existing values in the row (uses blank? rules if false)
+      def overwrite?(existing, update)
+        case
+        when @overwrite
+          update.blank? ? false : true
+        else
+          existing.blank? ? true : false
+        end
+      end
+
+      # Whether or not to use the first returned row if there are multiple values returned.
+      # If not true, then any multiple row return will result in an error
+      def use_first?
+        @use_first
+      end
+
       # Process the row and modify it as appropriate
       def process(row)
-        conn = ETL::Engine.connection(nil)
-
         conditions = []
-        values.each_pair do |key, column|
-          conditions << "#{column.to_s} = #{conn.quote(row[key])}"
+        match.each_pair do |key, column|
+          conditions << "#{column.to_s} = #{connection.quote(row[key])}"
         end
-        q = "SELECT #{values.to_a.collect { |a| a.join(' ') }.join(', ')} FROM #{table} WHERE "
+        q = "SELECT #{values.to_a.collect { |a| a.each(&:to_s).join(' ') }.join(', ')} FROM #{table.to_s} WHERE "
         q << conditions.join(' AND ')
+
+        ETL::Engine.logger.debug("Looking up row using query: #{q}")
 
         value = connection.select_all(q)
         if value.length > 1 and not use_first?
           raise TooManyResultsError, "Too many results found (and use_first not set) using the following query: #{q}"
         end
 
-        value.first.each_pair do |key, col_value|
-          row[key] = overwrite?       ? col_value
-                   : row[key].blank?  ? col_value
-                   :                    row[key]
+        if value.empty?
+          ETL::Engine.logger.info("Unable to find FillRow match for row: #{row.inspect}")
+        else
+          value.first.each_pair do |key, col_value|
+            ETL::Engine.logger.debug("Before update: #{row.inspect}")
+            row[key.to_sym] = col_value if overwrite?(row[key.to_sym], col_value)
+            ETL::Engine.logger.debug("After update: #{row.inspect}")
+          end
         end
+        row
       end
     end
   end
 end
 
-class TooManyResultsError < Error; end
+class TooManyResultsError < StandardError; end
