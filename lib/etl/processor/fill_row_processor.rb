@@ -72,7 +72,7 @@ module ETL
         q = "SELECT #{values.to_a.collect { |a| a.each(&:to_s).join(' ') }.join(', ')} FROM #{table.to_s} WHERE "
         q << conditions.join(' AND ')
 
-        ETL::Engine.logger.debug("Looking up row using query: #{q}")
+        #ETL::Engine.logger.debug("Looking up row using query: #{q}")
 
         value = connection.select_all(q)
         if value.length > 1 and not use_first?
@@ -83,9 +83,9 @@ module ETL
           ETL::Engine.logger.info("Unable to find FillRow match for row: #{row.inspect}")
         else
           value.first.each_pair do |key, col_value|
-            ETL::Engine.logger.debug("Before update: #{row.inspect}")
+            #ETL::Engine.logger.debug("Before update: #{row.inspect}")
             row[key.to_sym] = col_value if overwrite?(row[key.to_sym], col_value)
-            ETL::Engine.logger.debug("After update: #{row.inspect}")
+            #ETL::Engine.logger.debug("After update: #{row.inspect}")
           end
         end
         row
