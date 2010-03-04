@@ -1,3 +1,5 @@
+require 'digest/sha1'
+
 module ETL #:nodoc:
   module Transform #:nodoc:
     # Transform which looks up the value and replaces it with a foriegn key reference
@@ -124,7 +126,7 @@ class SQLResolver
   end
 
   def cache_key(value)
-    value.hash
+    Digest::SHA1.hexdigest(value.to_s)
   end
 
   def wheres(value)

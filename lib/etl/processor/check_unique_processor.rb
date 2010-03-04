@@ -1,3 +1,5 @@
+require 'digest/sha1'
+
 module ETL #:nodoc:
   module Processor #:nodoc:
     # Row processor that checks whether or not the row has already passed 
@@ -24,8 +26,7 @@ module ETL #:nodoc:
       # Process the row. This implementation will only return a row if it
       # it's key combination has not already been seen.
       def process(row)
-        #key = (keys.collect { |k| row[k] }).join('|')
-        key = row.values_at(*keys).hash
+        key = Digest::SHA1.hexdigest( row.values_at(*keys).to_s )
         unless compound_key_constraints[key]
           compound_key_constraints[key] = 1
           return row
