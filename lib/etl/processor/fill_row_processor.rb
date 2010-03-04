@@ -51,7 +51,7 @@ module ETL
 
         @connection = ETL::Engine.connection(target)
 
-        preload_cache unless configuration[:preload_cache] === false
+        preload_cache unless use_cache? === false or configuration[:preload_cache] === false
       end
 
       # The cache store
