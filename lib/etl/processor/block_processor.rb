@@ -5,9 +5,14 @@ module ETL
       def initialize(control, configuration)
         super
         @block = configuration[:block]
+        @config = configuration[:config]
       end
       def process(row=nil)
-        @block.call(row)
+        if @block.arity == 2
+          @block.call(row, @config)
+        else
+          @block.call(row)
+        end
       end
     end
   end
