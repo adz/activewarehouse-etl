@@ -41,13 +41,20 @@ module ETL
       def initialize(control, configuration)
         super
 
+        defaults = {
+          :use_first => false,
+          :overwrite => true,
+          :use_cache => true
+        }
+        configuration.merge! defaults
+
         @values = configuration[:values] || raise(ETL::ControlError, ":values must be specified")
-        @match  = configuration[:match] || raise(ETL::ControlError, ":match must be specified")
+        @match  = configuration[:match]  || raise(ETL::ControlError, ":match must be specified")
         @target = configuration[:target] || raise(ETL::ControlError, ":target must be specified")
-        @table  = configuration[:table] || raise(ETL::ControlError, ":table must be specified")
-        @use_first = configuration[:use_first] || false
-        @overwrite = configuration[:overwrite] === false ? false : true
-        @use_cache = configuration[:use_cache] === false ? false : true
+        @table  = configuration[:table]  || raise(ETL::ControlError, ":table must be specified")
+        @use_first = configuration[:use_first]
+        @overwrite = configuration[:overwrite]
+        @use_cache = configuration[:use_cache]
 
         @connection = ETL::Engine.connection(target)
 
