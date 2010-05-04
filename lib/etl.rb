@@ -50,8 +50,18 @@ end
 require 'active_support'
 require 'active_record'
 require 'adapter_extensions'
-require 'csv'
 #require 'pidify'
+
+# If 1.8, then clobber CSV with fasterCSV
+require "csv"
+if CSV.const_defined? :Reader
+  # Ruby 1.8 compatible
+  require 'fastercsv'
+  Object.send(:remove_const, :CSV)
+  CSV = FasterCSV
+else
+  # CSV is now FasterCSV in ruby 1.9
+end
 
 $:.unshift(File.dirname(__FILE__))
 
